@@ -1,0 +1,64 @@
+from http import HTTPStatus
+from re import match
+
+from flask import jsonify, request
+
+from . import app, db
+from .error_handlers import InvalidAPIUsage
+from .models import URLMap
+from .settings import (INVALID_CHARACTERS, LENGTH_ERROR, MIN_LINK_LENGTH, RULE,
+                       SHORT_LINK_LENGTH)
+from .utils import get_unique_short_id, is_short_id_unique
+
+ID_NOT_FOUND = 'Указанный id не найден.'
+NO_REQUIRED_FIELDS = 'Отсутствует тело запроса.'
+ID_AVAILABLE = 'Такая короткая ссылка уже есть в базе.'
+
+
+@app.route('/api/id/<string:short_id>/', methods=['GET'])
+def get_original_url(short_id):
+    """
+    Получить исходный URL, связанный с заданным short_id.
+
+    Аргументы:
+        - short_id (str): короткий идентификатор для URL.
+
+    Возвращает:
+        - (json, int): объект JSON, содержащий исходный URL и код состояния
+          HTTP.
+    """
+    original_link = URLMap.query.filter_by(short=short_id).first()
+    if original_link is None:
+        raise InvalidAPIUsage(ID_NOT_FOUND, HTTPStatus.NOT_FOUND.value)
+    return jsonify(original_link.to_dict()), HTTPStatus.OK.value
+
+
+@app.route('/api/id/', methods=['POST'])
+def create_short_link():
+    """
+    Создает новую короткую ссылку для заданного URL.
+
+    Возвращает:
+        - (json, int): объект JSON, содержащий созданное соответствие
+          короткого идентификатора URL и оригинальной ссылки, а также код
+          статуса HTTP.
+    """
+    data = request.get_json()
+    if 'url' not in data:
+        raise InvalidAPIUsage(NO_REQUIRED_FIELDS)
+    custom_id = data.get('custom_id')
+    if custom_id:
+        if not match(RULE, custom_id):
+            raise InvalidAPIUsage(INVALID_CHARACTERS)
+        if not (MIN_LINK_LENGTH <= len(custom_id) <= SHORT_LINK_LENGTH):
+            raise InvalidAPIUsage(LENGTH_ERROR)
+        if not is_short_id_unique(custom_id):
+            raise InvalidAPIUsage(ID_AVAILABLE)
+    else:
+        custom_id = get_unique_short_id()
+        data['custom_id'] = custom_id
+    urlmap = URLMap()
+    urlmap.from_dict(data)
+    db.session.add(urlmap)
+    db.session.commit()
+    return jsonify({'urlmap': urlmap.to_dict()}), HTTPStatus.CREATED.value

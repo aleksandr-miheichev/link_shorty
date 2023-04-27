@@ -1,0 +1,71 @@
+from http import HTTPStatus
+from urllib.parse import urlsplit
+
+from flask import abort, flash, redirect, render_template
+from sqlalchemy import or_
+
+from . import app, db
+from .forms import URLMapForm
+from .models import URLMap
+from .utils import get_unique_short_id
+
+SHORT_ID_EXISTS = ('Этот короткий идентификатор уже используется, предложите '
+                   'другой.')
+SHORT_LINK = ('<b>Ваша новая ссылка готова:</b>\n'
+              '<a href="{base_url}{short_link}" target="_blank">'
+              '{base_url}{short_link}')
+
+
+@app.route('/', methods=['GET', 'POST'])
+def index_view():
+    """
+    Страница с формой для создания сокращённых ссылок.
+
+    Возвращает:
+        - render_template:  Рендерит шаблон 'quick_link.html' с формой и
+          любыми флэш-сообщениями.
+    """
+    form = URLMapForm()
+    if form.validate_on_submit():
+        custom_id = form.custom_id.data
+        original_link = form.original_link.data
+        split_url = urlsplit(original_link)
+        base_url = f"{split_url.scheme}://{split_url.netloc}/"
+        existing_link = URLMap.query.filter(or_(
+            URLMap.original == original_link,
+            URLMap.short == custom_id
+        )).first()
+        if existing_link:
+            if existing_link.original == original_link:
+                flash(SHORT_LINK.format(
+                    base_url=base_url,
+                    short_link=existing_link.short
+                ))
+            else:
+                flash(SHORT_ID_EXISTS)
+        else:
+            if not custom_id:
+                custom_id = get_unique_short_id()
+            db.session.add(URLMap(original=original_link, short=custom_id))
+            db.session.commit()
+            flash(SHORT_LINK.format(base_url=base_url, short_link=custom_id))
+    return render_template('quick_link.html', form=form)
+
+
+@app.route('/<string:short_id>', methods=['GET'])
+def redirect_view(short_id):
+    """
+    Перенаправляет пользователей на исходный длинный URL на основе
+    предоставленного короткого идентификатора.
+
+    Аргументы:
+        - short_id (str): короткий идентификатор, указанный в URL-пути.
+
+    Возвращает:
+        - redirect: перенаправление на исходный длинный URL.
+        - abort: Ошибка со статусом 404, если короткий идентификатор не найден.
+    """
+    link = URLMap.query.filter_by(short=short_id).first()
+    return redirect(link.original) if link else abort(
+        HTTPStatus.NOT_FOUND.value
+    )

@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block content %}
+<main>
+  <section class="container my-5 px-4">
+    <a class="nav-link" href="{{ url_for('index_view') }}">
+      <h1 class="text-center"><span class="highlight">Ya</span>Cut</h1>
+    </a>
+    <p class="text-center my-4">
+      Создайте короткую ссылку автоматически или предложите свой вариант
+    </p>
+    <div class="container">
+      <div class="row my-3">
+        <div class="col-sm">
+        </div>
+        <div class="col-sm">
+          <form method="POST" novalidate>
+            {{ form.csrf_token }}
+            <fieldset>
+              <div>
+                {{ form.original_link(class="form-control form-control-lg py-2 mb-3", placeholder=form.original_link.label.text) }}
+                <p>
+                  {% if form.original_link.errors %}
+                    {% for error in form.original_link.errors %}
+                      <span class="error-text">{{ error }}</span>
+                    {% endfor %}
+                  {% endif %}
+                </p>
+              </div>
+              <div>
+                {{ form.custom_id(class="form-control form-control-lg py-2 mb-3", placeholder=form.custom_id.label.text) }}
+                <p>
+                  {% if form.custom_id.errors %}
+                    {% for error in form.custom_id.errors %}
+                      <span class="error-text">{{ error }}</span>
+                    {% endfor %}
+                  {% endif %}
+                </p>
+              </div>
+              {{ form.submit(class="btn btn-primary") }}
+            </fieldset>
+          </form>
+        </div>
+        <div class="col-sm">
+        </div>
+      </div>
+    </div>
+    <div class="container">
+      <div class="row">
+        <div class="col-sm">
+        </div>
+        <div class="col-sm">
+          <p class="text-center">
+          <h5 class="text-center">
+            {% with messages = get_flashed_messages() %}
+              {% if messages %}
+                {% for message in messages %}
+                  {{ message }}
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+          </h5>
+          </p>
+        </div>
+        <div class="col-sm"></div>
+      </div>
+    </div>
+  </section>
+</main>
+{% endblock content %}

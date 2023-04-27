@@ -1,0 +1,133 @@
+:root {
+    --primary-color: #13629E;
+    --secondary-color-a: #2222AC;
+    --secondary-color-b: #0AA864;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@200;500;700&display=swap');
+
+/* Global styles */
+body {
+    font-family: Inter, Arial, Lucida Grande, sans-serif;
+    padding-top: 1rem;
+    color: #4b4f54;
+    font-size: 1.15vw;
+    font-weight: 200;
+}
+
+body p {
+    line-height: 1.2;
+}
+
+a {
+    transition: opacity .3s ease, color .3s ease;
+}
+
+/* Specific styles */
+.highlight {
+    color: red;
+}
+
+.error-text {
+    color: red;
+}
+
+.error-container {
+    margin-bottom: .5rem;
+}
+
+.btn-primary {
+    color: #fff;
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    color: #fff;
+    background-color: #063D67;
+    border-color: var(--primary-color);
+}
+
+.bd-placeholder-img {
+    font-size: 1.125rem;
+    text-anchor: middle;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+}
+
+@media (min-width: 768px) {
+    .bd-placeholder-img-lg {
+        font-size: 3.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        font-size: 1.5rem;
+    }
+
+    body small {
+        font-size: .5rem;
+    }
+
+    .nav {
+        display: block;
+    }
+}
+
+.main-subtitle {
+    font-weight: 700;
+    text-transform: uppercase;
+    line-height: 1.1;
+}
+
+.main-subtitle strong {
+    color: #0AA864;
+}
+
+.nav-link {
+    color: #063D67;
+    font-weight: 500;
+    line-height: 1em;
+}
+
+.nav-link h1 {
+    text-transform: none;
+}
+
+.nav-link:hover {
+    color: #13629E;
+    text-decoration: underline;
+}
+
+.regular-link {
+    text-decoration: none;
+    color: #063D67;
+    font-weight: 700;
+}
+
+.regular-link:hover {
+    color: #13629E;
+    text-decoration: underline;
+}
+
+.objects .card-header {
+    padding: .5rem 1rem;
+    margin-bottom: .5rem;
+    background-color: rgba(0, 0, 0, .03);
+    border-bottom: none;
+}
+
+.contacts ul {
+    list-style: none;
+    margin-left: -2rem;
+}
+
+footer a.regular-link {
+    font-weight: 200;
+}
+
+main {
+    padding-top: 5em;
+}
