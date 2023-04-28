@@ -1,7 +1,6 @@
 from http import HTTPStatus
-from urllib.parse import urlsplit
 
-from flask import abort, flash, redirect, render_template
+from flask import abort, flash, redirect, render_template, request
 from sqlalchemy import or_
 
 from . import app, db
@@ -11,9 +10,9 @@ from .utils import get_unique_short_id
 
 SHORT_ID_EXISTS = ('Этот короткий идентификатор уже используется, предложите '
                    'другой.')
-SHORT_LINK = ('<b>Ваша новая ссылка готова:</b>\n'
+SHORT_LINK = ('<p><b>Ваша новая ссылка готова:</b><br>'
               '<a href="{base_url}{short_link}" target="_blank">'
-              '{base_url}{short_link}')
+              '{base_url}{short_link}</a></p>')
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -29,8 +28,7 @@ def index_view():
     if form.validate_on_submit():
         custom_id = form.custom_id.data
         original_link = form.original_link.data
-        split_url = urlsplit(original_link)
-        base_url = f"{split_url.scheme}://{split_url.netloc}/"
+        base_url = request.url_root
         existing_link = URLMap.query.filter(or_(
             URLMap.original == original_link,
             URLMap.short == custom_id
