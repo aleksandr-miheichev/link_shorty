@@ -30,7 +30,9 @@ def index_view():
         if custom_id and not is_short_id_unique(custom_id):
             flash(ID_AVAILABLE.format(custom_id=custom_id))
             return render_template('quick_link.html', form=form)
-        existing_link = URLMap.query.filter(URLMap.original == original_link).first()
+        existing_link = URLMap.query.filter(
+            URLMap.original == original_link
+        ).first()
         if existing_link:
             flash(SHORT_LINK.format(
                 base_url=base_url,
