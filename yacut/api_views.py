@@ -6,13 +6,14 @@ from flask import jsonify, request
 from . import app, db
 from .error_handlers import InvalidAPIUsage
 from .models import URLMap
-from .settings import (INVALID_CHARACTERS, LENGTH_ERROR, MIN_LINK_LENGTH, RULE,
+from .settings import (INVALID_NAME_LINK, MIN_LINK_LENGTH, RULE,
                        SHORT_LINK_LENGTH)
 from .utils import get_unique_short_id, is_short_id_unique
 
-ID_NOT_FOUND = 'Указанный id не найден.'
-NO_REQUIRED_FIELDS = 'Отсутствует тело запроса.'
-ID_AVAILABLE = 'Такая короткая ссылка уже есть в базе.'
+ID_NOT_FOUND = 'Указанный id не найден'
+REQUEST_EMPTY = 'Отсутствует тело запроса'
+ID_AVAILABLE = 'Такая короткая ссылка уже есть в базе'
+URL_REQUIRED_FIELD = '"url" является обязательным полем!'
 
 
 @app.route('/api/id/<string:short_id>/', methods=['GET'])
@@ -44,14 +45,16 @@ def create_short_link():
           статуса HTTP.
     """
     data = request.get_json()
+    if not data:
+        raise InvalidAPIUsage(REQUEST_EMPTY)
     if 'url' not in data:
-        raise InvalidAPIUsage(NO_REQUIRED_FIELDS)
+        raise InvalidAPIUsage(URL_REQUIRED_FIELD)
     custom_id = data.get('custom_id')
     if custom_id:
         if not match(RULE, custom_id):
-            raise InvalidAPIUsage(INVALID_CHARACTERS)
+            raise InvalidAPIUsage(INVALID_NAME_LINK)
         if not (MIN_LINK_LENGTH <= len(custom_id) <= SHORT_LINK_LENGTH):
-            raise InvalidAPIUsage(LENGTH_ERROR)
+            raise InvalidAPIUsage(INVALID_NAME_LINK)
         if not is_short_id_unique(custom_id):
             raise InvalidAPIUsage(ID_AVAILABLE)
     else:
