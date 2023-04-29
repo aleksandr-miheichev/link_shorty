@@ -9,7 +9,7 @@ LENGTH_ERROR = 'Длина должна быть от 1 до 16 символов
 RULE = r'^[a-zA-Z0-9\-_]*$'
 INVALID_NAME_LINK = 'Указано недопустимое имя для короткой ссылки'
 ID_AVAILABLE = 'Имя {custom_id} уже занято!'
-ID_AVAILABLE_API = 'Имя {custom_id} уже занято'
+ID_AVAILABLE_API = 'Имя {custom_id} уже занято.'
 
 
 class Config(object):
