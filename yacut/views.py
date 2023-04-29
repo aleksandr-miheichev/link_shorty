@@ -1,13 +1,12 @@
 from http import HTTPStatus
 
 from flask import abort, flash, redirect, render_template, request
-from sqlalchemy import or_
 
 from . import app, db
 from .forms import URLMapForm
 from .models import URLMap
 from .settings import ID_AVAILABLE
-from .utils import get_unique_short_id
+from .utils import get_unique_short_id, is_short_id_unique
 
 SHORT_LINK = ('<p><b>Ваша новая ссылка готова:</b><br>'
               '<a href="{base_url}{short_link}" target="_blank">'
@@ -28,18 +27,15 @@ def index_view():
         custom_id = form.custom_id.data
         original_link = form.original_link.data
         base_url = request.url_root
-        existing_link = URLMap.query.filter(or_(
-            URLMap.original == original_link,
-            URLMap.short == custom_id
-        )).first()
+        if custom_id and not is_short_id_unique(custom_id):
+            flash(ID_AVAILABLE.format(custom_id=custom_id))
+            return render_template('quick_link.html', form=form)
+        existing_link = URLMap.query.filter(URLMap.original == original_link).first()
         if existing_link:
-            if existing_link.original == original_link:
-                flash(SHORT_LINK.format(
-                    base_url=base_url,
-                    short_link=existing_link.short
-                ))
-            else:
-                flash(ID_AVAILABLE.format(custom_id=custom_id))
+            flash(SHORT_LINK.format(
+                base_url=base_url,
+                short_link=existing_link.short
+            ))
         else:
             if not custom_id:
                 custom_id = get_unique_short_id()
