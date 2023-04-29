@@ -6,10 +6,9 @@ from sqlalchemy import or_
 from . import app, db
 from .forms import URLMapForm
 from .models import URLMap
+from .settings import ID_AVAILABLE
 from .utils import get_unique_short_id
 
-SHORT_ID_EXISTS = ('Этот короткий идентификатор уже используется, предложите '
-                   'другой.')
 SHORT_LINK = ('<p><b>Ваша новая ссылка готова:</b><br>'
               '<a href="{base_url}{short_link}" target="_blank">'
               '{base_url}{short_link}</a></p>')
@@ -40,7 +39,7 @@ def index_view():
                     short_link=existing_link.short
                 ))
             else:
-                flash(SHORT_ID_EXISTS)
+                flash(ID_AVAILABLE.format(custom_id=custom_id))
         else:
             if not custom_id:
                 custom_id = get_unique_short_id()
