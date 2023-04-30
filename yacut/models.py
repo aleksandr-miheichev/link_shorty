@@ -13,6 +13,9 @@ from yacut.error_handlers import InvalidAPIUsage
 
 ID_AVAILABLE_API = 'Имя "{custom_id}" уже занято.'
 INVALID_NAME_LINK = 'Указано недопустимое имя для короткой ссылки'
+ERROR_CREATE_UNIQUE_SHORT_ID = ('Не удалось сгенерировать уникальный короткий '
+                                'идентификатор после максимального количества '
+                                'повторных попыток.')
 
 
 class URLMap(db.Model):
@@ -58,7 +61,9 @@ class URLMap(db.Model):
 
     @staticmethod
     def is_short_id_unique(short_id):
-        """Checks if the given short ID is unique."""
+        """
+        Проверяет, является ли заданный короткий идентификатор уникальным.
+        """
         return URLMap.get_by_short_id(short_id) is None
 
     @staticmethod
@@ -70,9 +75,7 @@ class URLMap(db.Model):
             )
             if URLMap.is_short_id_unique(short_id):
                 return short_id
-        raise ValueError('Не удалось сгенерировать уникальный короткий '
-                         'идентификатор после максимального количества '
-                         'повторных попыток.')
+        raise ValueError(ERROR_CREATE_UNIQUE_SHORT_ID)
 
     @staticmethod
     def validate_and_generate_short_id(custom_id):

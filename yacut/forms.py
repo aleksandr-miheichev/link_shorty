@@ -13,6 +13,7 @@ ENTER_LONG_LINK = 'Введите длинную ссылку'
 MANDATORY_FIELD = 'Обязательное поле'
 ENTER_SHORT_LINK = 'Ваш вариант короткой ссылки'
 CREATE = 'Создать'
+ID_AVAILABLE = 'Имя {custom_id} уже занято!'
 
 
 class URLMapForm(FlaskForm):
@@ -36,8 +37,7 @@ class URLMapForm(FlaskForm):
 
     def validate_custom_id(self, custom_id):
         if custom_id.data:
-            if URLMap.query.filter_by(short=custom_id.data).first():
-                raise ValidationError(
-                    'Этот короткий идентификатор уже используется. '
-                    'Пожалуйста, выберите другой идентификатор.'
-                )
+            if not URLMap.is_short_id_unique(custom_id.data):
+                raise ValidationError(ID_AVAILABLE.format(
+                    custom_id=custom_id.data
+                ))
