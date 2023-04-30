@@ -21,7 +21,7 @@ class URLMap(db.Model):
             url=self.original,
             short_link=url_for(
                 'redirect_view',
-                short=self.short,
+                short_id=self.short,
                 _external=True
             )
         )
