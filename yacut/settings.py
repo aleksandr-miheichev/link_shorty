@@ -6,7 +6,7 @@ MIN_LINK_LENGTH = 1
 INVALID_CHARACTERS = ('Недопустимый символ(ы). Допустимы только буквы, цифры, '
                       'дефисы и знаки подчеркивания.')
 LENGTH_ERROR = 'Длина должна быть от 1 до 16 символов.'
-RULE = r'^[a-zA-Z0-9\-_]*$'
+RULE = r'^[A-Za-z0-9]{1,6}$'
 INVALID_NAME_LINK = 'Указано недопустимое имя для короткой ссылки'
 ID_AVAILABLE = 'Имя {custom_id} уже занято!'
 ID_AVAILABLE_API = 'Имя {custom_id} уже занято.'
