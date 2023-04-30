@@ -63,4 +63,4 @@ def create_short_link():
     urlmap.from_dict(data)
     db.session.add(urlmap)
     db.session.commit()
-    return jsonify({'urlmap': urlmap.to_dict()}), HTTPStatus.CREATED.value
+    return jsonify(urlmap.to_dict()), HTTPStatus.CREATED.value
