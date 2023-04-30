@@ -2,15 +2,11 @@ from http import HTTPStatus
 
 from flask import abort, flash, redirect, render_template, request
 
-from . import app, db
+from . import app
 from .forms import URLMapForm
 from .models import URLMap
-from .settings import ID_AVAILABLE
-from .utils import get_unique_short_id, is_short_id_unique
 
-SHORT_LINK = ('<p><b>Ваша новая ссылка готова:</b><br>'
-              '<a href="{base_url}{short_link}" target="_blank">'
-              '{base_url}{short_link}</a></p>')
+ID_AVAILABLE = 'Имя {custom_id} уже занято!'
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -19,32 +15,26 @@ def index_view():
     Страница с формой для создания сокращённых ссылок.
 
     Возвращает:
-        - render_template:  Рендерит шаблон 'quick_link.html' с формой и
-          любыми флэш-сообщениями.
+        - render_template:  Рендерит шаблон 'index.html' с формой и любыми
+          флэш-сообщениями.
     """
     form = URLMapForm()
-    if form.validate_on_submit():
-        custom_id = form.custom_id.data
-        original_link = form.original_link.data
-        base_url = request.url_root
-        if custom_id and not is_short_id_unique(custom_id):
-            flash(ID_AVAILABLE.format(custom_id=custom_id))
-            return render_template('quick_link.html', form=form)
-        existing_link = URLMap.query.filter(
-            URLMap.original == original_link
-        ).first()
-        if existing_link:
-            flash(SHORT_LINK.format(
-                base_url=base_url,
-                short_link=existing_link.short
-            ))
-        else:
-            if not custom_id:
-                custom_id = get_unique_short_id()
-            db.session.add(URLMap(original=original_link, short=custom_id))
-            db.session.commit()
-            flash(SHORT_LINK.format(base_url=base_url, short_link=custom_id))
-    return render_template('quick_link.html', form=form)
+    if not form.validate_on_submit():
+        return render_template('index.html', form=form)
+    custom_id = form.custom_id.data
+    original_link = form.original_link.data
+    base_url = request.url_root
+    if custom_id and not URLMap.is_short_id_unique(custom_id):
+        flash(ID_AVAILABLE.format(custom_id=custom_id))
+        return render_template('index.html', form=form)
+    existing_link = URLMap.get_by_original_url(original_link)
+    if existing_link:
+        short_link = f"{base_url}{existing_link.short}"
+    else:
+        custom_id = URLMap.validate_and_generate_short_id(custom_id)
+        URLMap.create_url_map(original_url=original_link, short_id=custom_id)
+        short_link = f"{base_url}{custom_id}"
+    return render_template('index.html', form=form, short_link=short_link)
 
 
 @app.route('/<string:short_id>', methods=['GET'])
@@ -60,7 +50,7 @@ def redirect_view(short_id):
         - redirect: перенаправление на исходный длинный URL.
         - abort: Ошибка со статусом 404, если короткий идентификатор не найден.
     """
-    link = URLMap.query.filter_by(short=short_id).first()
+    link = URLMap.get_by_short_id(short_id)
     return redirect(link.original) if link else abort(
         HTTPStatus.NOT_FOUND.value
     )

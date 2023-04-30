@@ -1,10 +1,14 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, URLField
-from wtforms.validators import DataRequired, Length, Optional, Regexp
+from wtforms.validators import (DataRequired, Length, Optional, Regexp,
+                                ValidationError)
 
-from yacut.settings import (INVALID_CHARACTERS, LENGTH_ERROR, MIN_LINK_LENGTH,
-                            SHORT_LINK_LENGTH, RULE)
+from yacut.models import URLMap
+from yacut.settings import PATTERN, SIZE_SHORT_USER_ID
 
+INVALID_CHARACTERS = ('Недопустимый символ(ы). Допустимы только буквы, цифры, '
+                      'дефисы и знаки подчеркивания.')
+LENGTH_ERROR = 'Длина должна быть от 1 до 16 символов.'
 ENTER_LONG_LINK = 'Введите длинную ссылку'
 MANDATORY_FIELD = 'Обязательное поле'
 ENTER_SHORT_LINK = 'Ваш вариант короткой ссылки'
@@ -24,8 +28,16 @@ class URLMapForm(FlaskForm):
         ENTER_SHORT_LINK,
         validators=[
             Optional(),
-            Length(MIN_LINK_LENGTH, SHORT_LINK_LENGTH, message=LENGTH_ERROR),
-            Regexp(regex=RULE, message=INVALID_CHARACTERS)
+            Length(max=SIZE_SHORT_USER_ID, message=LENGTH_ERROR),
+            Regexp(regex=PATTERN, message=INVALID_CHARACTERS)
         ]
     )
     submit = SubmitField(CREATE)
+
+    def validate_custom_id(self, custom_id):
+        if custom_id.data:
+            if URLMap.query.filter_by(short=custom_id.data).first():
+                raise ValidationError(
+                    'Этот короткий идентификатор уже используется. '
+                    'Пожалуйста, выберите другой идентификатор.'
+                )

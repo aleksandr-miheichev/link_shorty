@@ -1,15 +1,13 @@
 import os
+from string import ascii_letters, digits
 
-SHORT_LINK_LENGTH = 16
+UNIQUE_ID_RETRIES = 10
+ALLOWED_CHARACTERS = ascii_letters + digits
+SIZE_SHORT_USER_ID = 16
+MAX_LINK_LENGTH = 256
 DEFAULT_LINK_LENGTH = 6
-MIN_LINK_LENGTH = 1
-INVALID_CHARACTERS = ('Недопустимый символ(ы). Допустимы только буквы, цифры, '
-                      'дефисы и знаки подчеркивания.')
-LENGTH_ERROR = 'Длина должна быть от 1 до 16 символов.'
-RULE = r'^[A-Za-z0-9]+$'
-INVALID_NAME_LINK = 'Указано недопустимое имя для короткой ссылки'
-ID_AVAILABLE = 'Имя {custom_id} уже занято!'
-ID_AVAILABLE_API = 'Имя "{custom_id}" уже занято.'
+PATTERN = r'^[A-Za-z0-9]+$'
+FUNCTION_REDIRECT = 'redirect_view'
 
 
 class Config(object):

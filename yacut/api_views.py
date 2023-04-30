@@ -1,14 +1,10 @@
 from http import HTTPStatus
-from re import match
 
 from flask import jsonify, request
 
-from . import app, db
+from . import app
 from .error_handlers import InvalidAPIUsage
 from .models import URLMap
-from .settings import (ID_AVAILABLE_API, INVALID_NAME_LINK, MIN_LINK_LENGTH,
-                       RULE, SHORT_LINK_LENGTH)
-from .utils import get_unique_short_id, is_short_id_unique
 
 ID_NOT_FOUND = 'Указанный id не найден'
 REQUEST_EMPTY = 'Отсутствует тело запроса'
@@ -27,10 +23,10 @@ def get_original_url(short_id):
         - (json, int): объект JSON, содержащий исходный URL и код состояния
           HTTP.
     """
-    original_link = URLMap.query.filter_by(short=short_id).first()
-    if original_link is None:
+    url_map = URLMap.get_by_short_id(short_id)
+    if url_map is None:
         raise InvalidAPIUsage(ID_NOT_FOUND, HTTPStatus.NOT_FOUND.value)
-    return jsonify({'url': original_link.original}), HTTPStatus.OK.value
+    return jsonify({'url': url_map.original}), HTTPStatus.OK.value
 
 
 @app.route('/api/id/', methods=['POST'])
@@ -48,19 +44,9 @@ def create_short_link():
         raise InvalidAPIUsage(REQUEST_EMPTY)
     if 'url' not in data:
         raise InvalidAPIUsage(URL_REQUIRED_FIELD)
-    custom_id = data.get('custom_id')
-    if custom_id:
-        if not match(RULE, custom_id):
-            raise InvalidAPIUsage(INVALID_NAME_LINK)
-        if not (MIN_LINK_LENGTH <= len(custom_id) <= SHORT_LINK_LENGTH):
-            raise InvalidAPIUsage(INVALID_NAME_LINK)
-        if not is_short_id_unique(custom_id):
-            raise InvalidAPIUsage(ID_AVAILABLE_API.format(custom_id=custom_id))
-    else:
-        custom_id = get_unique_short_id()
-        data['custom_id'] = custom_id
-    urlmap = URLMap()
-    urlmap.from_dict(data)
-    db.session.add(urlmap)
-    db.session.commit()
-    return jsonify(urlmap.to_dict()), HTTPStatus.CREATED.value
+    data['custom_id'] = URLMap.validate_and_generate_short_id(
+        data.get('custom_id')
+    )
+    return jsonify(
+        URLMap.create_url_map(data['url'], data['custom_id']).to_dict()
+    ), HTTPStatus.CREATED.value
