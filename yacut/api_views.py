@@ -30,7 +30,7 @@ def get_original_url(short_id):
     original_link = URLMap.query.filter_by(short=short_id).first()
     if original_link is None:
         raise InvalidAPIUsage(ID_NOT_FOUND, HTTPStatus.NOT_FOUND.value)
-    return jsonify(original_link.to_dict()), HTTPStatus.OK.value
+    return jsonify({'url': original_link.original}), HTTPStatus.OK.value
 
 
 @app.route('/api/id/', methods=['POST'])
