@@ -4,7 +4,7 @@ from wtforms.validators import (DataRequired, Length, Optional, Regexp,
                                 ValidationError)
 
 from yacut.models import URLMap
-from yacut.settings import PATTERN, SIZE_SHORT_USER_ID
+from yacut.settings import MAX_LINK_LENGTH, PATTERN, SIZE_SHORT_USER_ID
 
 INVALID_CHARACTERS = ('Недопустимый символ(ы). Допустимы только буквы, цифры, '
                       'дефисы и знаки подчеркивания.')
@@ -14,6 +14,7 @@ MANDATORY_FIELD = 'Обязательное поле'
 ENTER_SHORT_LINK = 'Ваш вариант короткой ссылки'
 CREATE = 'Создать'
 ID_AVAILABLE = 'Имя {custom_id} уже занято!'
+LINK_LIMIT_LENGTH = 'Длина ссылки должна быть до 2048 символов'
 
 
 class URLMapForm(FlaskForm):
@@ -23,21 +24,24 @@ class URLMapForm(FlaskForm):
     """
     original_link = URLField(
         ENTER_LONG_LINK,
-        validators=[DataRequired(message=MANDATORY_FIELD)]
+        validators=[
+            DataRequired(message=MANDATORY_FIELD),
+            Length(max=MAX_LINK_LENGTH, message=LINK_LIMIT_LENGTH)
+        ]
     )
     custom_id = StringField(
         ENTER_SHORT_LINK,
         validators=[
             Optional(),
             Length(max=SIZE_SHORT_USER_ID, message=LENGTH_ERROR),
-            Regexp(regex=PATTERN, message=INVALID_CHARACTERS)
+            Regexp(regex=PATTERN.pattern, message=INVALID_CHARACTERS)
         ]
     )
     submit = SubmitField(CREATE)
 
     def validate_custom_id(self, custom_id):
         if custom_id.data:
-            if not URLMap.is_short_id_unique(custom_id.data):
+            if not URLMap.is_custom_id_unique(custom_id.data):
                 raise ValidationError(ID_AVAILABLE.format(
                     custom_id=custom_id.data
                 ))

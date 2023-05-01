@@ -1,11 +1,10 @@
 from datetime import datetime
-from re import match
 from secrets import choice
 
 from flask import url_for
 
 from yacut.settings import (ALLOWED_CHARACTERS, DEFAULT_LINK_LENGTH,
-                            FUNCTION_REDIRECT, MAX_LINK_LENGTH, PATTERN,
+                            FUNCTION_REDIRECT, MAX_LINK_LENGTH,
                             SIZE_SHORT_USER_ID, UNIQUE_ID_RETRIES)
 
 from . import db
@@ -13,9 +12,9 @@ from yacut.error_handlers import InvalidAPIUsage
 
 ID_AVAILABLE_API = 'Имя "{custom_id}" уже занято.'
 INVALID_NAME_LINK = 'Указано недопустимое имя для короткой ссылки'
-ERROR_CREATE_UNIQUE_SHORT_ID = ('Не удалось сгенерировать уникальный короткий '
-                                'идентификатор после максимального количества '
-                                'повторных попыток.')
+ERROR_CREATE_UNIQUE_CUSTOM_ID = ('Не удалось сгенерировать уникальный '
+                                 'короткий идентификатор после максимального '
+                                 'количества повторных попыток.')
 
 
 class URLMap(db.Model):
@@ -44,66 +43,49 @@ class URLMap(db.Model):
         )
 
     @staticmethod
-    def get_by_original_url(original_url):
+    def get(custom_id):
         """
-        Возвращает экземпляр URLMap, связанный с заданным original_url,
-        или None, если он не найден.
-        """
-        return URLMap.query.filter_by(original=original_url).first()
-
-    @staticmethod
-    def get_by_short_id(short_id):
-        """
-        Возвращает экземпляр URLMap, связанный с заданным short_id, или None,
+        Возвращает экземпляр URLMap, связанный с заданным custom_id, или None,
         если он не найден.
         """
-        return URLMap.query.filter_by(short=short_id).first()
+        return URLMap.query.filter_by(short=custom_id).first()
 
     @staticmethod
-    def is_short_id_unique(short_id):
+    def is_custom_id_unique(custom_id):
         """
         Проверяет, является ли заданный короткий идентификатор уникальным.
         """
-        return URLMap.get_by_short_id(short_id) is None
+        return URLMap.get(custom_id) is None
 
     @staticmethod
-    def _generate_unique_short_id(length=DEFAULT_LINK_LENGTH):
+    def _generate_unique_custom_id(length=DEFAULT_LINK_LENGTH):
         """Генерирует уникальный короткий идентификатор с указанной длиной."""
         for _ in range(UNIQUE_ID_RETRIES):
-            short_id = ''.join(
+            custom_id = ''.join(
                 choice(ALLOWED_CHARACTERS) for _ in range(length)
             )
-            if URLMap.is_short_id_unique(short_id):
-                return short_id
-        raise ValueError(ERROR_CREATE_UNIQUE_SHORT_ID)
+            if URLMap.is_custom_id_unique(custom_id):
+                return custom_id
+        raise ValueError(ERROR_CREATE_UNIQUE_CUSTOM_ID)
 
     @staticmethod
-    def validate_and_generate_short_id(custom_id):
+    def create(original_url, custom_id=None):
         """
-        Проверяет предоставленный пользовательский короткий идентификатор,
-        генерирует новый, если необходимо, и возвращает окончательный короткий
-        идентификатор.
+        Создаёт новую запись URLMap с заданным original_url и необязательным
+        пользовательским custom_id.
         """
         if custom_id:
-            if not match(PATTERN, custom_id) or not (
-                    len(custom_id) <= SIZE_SHORT_USER_ID
-            ):
+            if not len(custom_id) <= SIZE_SHORT_USER_ID:
                 raise InvalidAPIUsage(INVALID_NAME_LINK)
-            if URLMap.get_by_short_id(custom_id) is not None:
-                raise InvalidAPIUsage(ID_AVAILABLE_API.format(
-                    custom_id=custom_id
-                ))
+            if all(char in ALLOWED_CHARACTERS for char in custom_id):
+                raise InvalidAPIUsage(INVALID_NAME_LINK)
+            if URLMap.get(custom_id) is not None:
+                raise InvalidAPIUsage(
+                    ID_AVAILABLE_API.format(custom_id=custom_id)
+                )
         else:
-            custom_id = URLMap._generate_unique_short_id()
-        return custom_id
-
-    @staticmethod
-    def create_url_map(original_url, short_id):
-        """
-        Создает новый экземпляр URLMap, добавляет его в базу данных и
-        возвращает экземпляр.
-        """
-        urlmap = URLMap(original=original_url, short=short_id)
-        db.session.add(urlmap)
+            custom_id = URLMap._generate_unique_custom_id()
+        url_map = URLMap(original=original_url, short=custom_id)
+        db.session.add(url_map)
         db.session.commit()
-        return urlmap
+        return url_map

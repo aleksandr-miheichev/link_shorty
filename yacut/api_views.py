@@ -8,25 +8,25 @@ from .models import URLMap
 
 ID_NOT_FOUND = 'Указанный id не найден'
 REQUEST_EMPTY = 'Отсутствует тело запроса'
-URL_REQUIRED_FIELD = '"url" является обязательным полем!'
+URL_REQUIRED_FIELD = '"url" является обязательным полем'
 
 
 @app.route('/api/id/<short_id>/', methods=['GET'])
-def get_original_url(short_id):
+def get_original_url(custom_id):
     """
-    Получить исходный URL, связанный с заданным short_id.
+    Получить исходный URL, связанный с заданным custom_id.
 
     Аргументы:
-        - short_id (str): короткий идентификатор для URL.
+        - custom_id (str): короткий идентификатор для URL.
 
     Возвращает:
         - (json, int): объект JSON, содержащий исходный URL и код состояния
           HTTP.
     """
-    url_map = URLMap.get_by_short_id(short_id)
+    url_map = URLMap.get(custom_id)
     if url_map is None:
-        raise InvalidAPIUsage(ID_NOT_FOUND, HTTPStatus.NOT_FOUND.value)
-    return jsonify({'url': url_map.original}), HTTPStatus.OK.value
+        raise InvalidAPIUsage(ID_NOT_FOUND, HTTPStatus.NOT_FOUND)
+    return jsonify({'url': url_map.original}), HTTPStatus.OK
 
 
 @app.route('/api/id/', methods=['POST'])
@@ -44,9 +44,4 @@ def create_short_link():
         raise InvalidAPIUsage(REQUEST_EMPTY)
     if 'url' not in data:
         raise InvalidAPIUsage(URL_REQUIRED_FIELD)
-    data['custom_id'] = URLMap.validate_and_generate_short_id(
-        data.get('custom_id')
-    )
-    return jsonify(
-        URLMap.create_url_map(data['url'], data['custom_id']).to_dict()
-    ), HTTPStatus.CREATED.value
+    return jsonify(URLMap.create(data['url'], data.get('custom_id')).to_dict()), HTTPStatus.CREATED
