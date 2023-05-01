@@ -8,7 +8,7 @@ from .models import URLMap
 
 ID_NOT_FOUND = 'Указанный id не найден'
 REQUEST_EMPTY = 'Отсутствует тело запроса'
-URL_REQUIRED_FIELD = '"url" является обязательным полем'
+URL_REQUIRED_FIELD = '"url" является обязательным полем!'
 
 
 @app.route('/api/id/<string:custom_id>/', methods=['GET'])
