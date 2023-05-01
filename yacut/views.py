@@ -1,8 +1,9 @@
 from http import HTTPStatus
 
-from flask import abort, flash, redirect, render_template, request
+from flask import abort, flash, redirect, render_template, url_for
 
 from . import app
+from .error_handlers import InvalidAPIUsage
 from .forms import URLMapForm
 from .models import URLMap
 
@@ -23,16 +24,23 @@ def index_view():
         return render_template('index.html', form=form)
     custom_id = form.custom_id.data
     original_link = form.original_link.data
-    base_url = request.url_root
-    if custom_id and not URLMap.is_custom_id_unique(custom_id):
-        flash(ID_AVAILABLE.format(custom_id=custom_id))
+    try:
+        new_url_map = URLMap.create(
+            original_url=original_link,
+            custom_id=custom_id
+        )
+    except InvalidAPIUsage as e:
+        flash(str(e))
         return render_template('index.html', form=form)
-    new_url_map = URLMap.create(
-        original_url=original_link,
-        custom_id=custom_id
+    return render_template(
+        'index.html',
+        form=form,
+        short_link=url_for(
+            'redirect_view',
+            custom_id=new_url_map.short,
+            _external=True
+        )
     )
-    short_link = f"{base_url}{new_url_map.short}"
-    return render_template('index.html', form=form, short_link=short_link)
 
 
 @app.route('/<string:custom_id>', methods=['GET'])
@@ -48,7 +56,7 @@ def redirect_view(custom_id):
         - redirect: перенаправление на исходный длинный URL.
         - abort: Ошибка со статусом 404, если короткий идентификатор не найден.
     """
-    link = URLMap.get(custom_id)
-    return redirect(link.original) if link else abort(
+    url_map = URLMap.get(custom_id)
+    return redirect(url_map.original) if url_map else abort(
         HTTPStatus.NOT_FOUND
     )

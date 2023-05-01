@@ -1,5 +1,6 @@
 from datetime import datetime
 from secrets import choice
+from urllib.parse import urlparse
 
 from flask import url_for
 
@@ -15,6 +16,7 @@ INVALID_NAME_LINK = 'Указано недопустимое имя для ко�
 ERROR_CREATE_UNIQUE_CUSTOM_ID = ('Не удалось сгенерировать уникальный '
                                  'короткий идентификатор после максимального '
                                  'количества повторных попыток.')
+WRONG_FORMAT_URL = 'Предоставлен неверный формат URL.'
 
 
 class URLMap(db.Model):
@@ -74,12 +76,15 @@ class URLMap(db.Model):
         Создаёт новую запись URLMap с заданным original_url и необязательным
         пользовательским custom_id.
         """
+        parsed_url = urlparse(original_url)
+        if not parsed_url.scheme or not parsed_url.netloc:
+            raise InvalidAPIUsage(WRONG_FORMAT_URL)
         if custom_id:
             if not len(custom_id) <= SIZE_SHORT_USER_ID:
                 raise InvalidAPIUsage(INVALID_NAME_LINK)
-            if all(char in ALLOWED_CHARACTERS for char in custom_id):
+            if not all(char in ALLOWED_CHARACTERS for char in custom_id):
                 raise InvalidAPIUsage(INVALID_NAME_LINK)
-            if URLMap.get(custom_id) is not None:
+            if not URLMap.is_custom_id_unique(custom_id):
                 raise InvalidAPIUsage(
                     ID_AVAILABLE_API.format(custom_id=custom_id)
                 )
