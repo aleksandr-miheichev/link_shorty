@@ -11,7 +11,7 @@ REQUEST_EMPTY = 'Отсутствует тело запроса'
 URL_REQUIRED_FIELD = '"url" является обязательным полем'
 
 
-@app.route('/api/id/<short_id>/', methods=['GET'])
+@app.route('/api/id/<string:custom_id>/', methods=['GET'])
 def get_original_url(custom_id):
     """
     Получить исходный URL, связанный с заданным custom_id.

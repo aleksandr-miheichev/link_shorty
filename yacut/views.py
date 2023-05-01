@@ -35,7 +35,7 @@ def index_view():
     return render_template('index.html', form=form, short_link=short_link)
 
 
-@app.route('/<string:short_id>', methods=['GET'])
+@app.route('/<string:custom_id>', methods=['GET'])
 def redirect_view(custom_id):
     """
     Перенаправляет пользователей на исходный длинный URL на основе

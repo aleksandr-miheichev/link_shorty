@@ -37,7 +37,7 @@ class URLMap(db.Model):
             url=self.original,
             short_link=url_for(
                 FUNCTION_REDIRECT,
-                short_id=self.short,
+                custom_id=self.short,
                 _external=True
             )
         )
