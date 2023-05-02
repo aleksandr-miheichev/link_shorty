@@ -58,7 +58,7 @@ class URLMap(db.Model):
         return URLMap.get(custom_id) is None
 
     @staticmethod
-    def _generate_unique_custom_id(length=DEFAULT_LINK_LENGTH):
+    def generate_unique_custom_id(length=DEFAULT_LINK_LENGTH):
         """Генерирует уникальный короткий идентификатор с указанной длиной."""
         for _ in range(UNIQUE_ID_RETRIES):
             custom_id = ''.join(random.choices(ALLOWED_CHARACTERS, k=length))
@@ -80,7 +80,7 @@ class URLMap(db.Model):
                     custom_id=custom_id
                 ))
         else:
-            custom_id = URLMap._generate_unique_custom_id()
+            custom_id = URLMap.generate_unique_custom_id()
         url_map = URLMap(original=original_url, short=custom_id)
         db.session.add(url_map)
         db.session.commit()

@@ -46,7 +46,7 @@ def create_short_link():
         raise InvalidAPIUsage(REQUEST_EMPTY)
     if 'url' not in data:
         raise InvalidAPIUsage(URL_REQUIRED_FIELD)
-    custom_id = data.get('custom_id')
+    custom_id = data.get('custom_id') or URLMap.generate_unique_custom_id()
     if custom_id and len(custom_id) > SIZE_SHORT_USER_ID:
         raise InvalidAPIUsage(INVALID_NAME)
     if not PATTERN.match(custom_id):
