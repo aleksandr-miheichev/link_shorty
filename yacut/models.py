@@ -1,12 +1,11 @@
 import random
 from datetime import datetime
-from urllib.parse import urlparse
 
 from flask import url_for
 
 from yacut.error_handlers import InvalidAPIUsage
 from yacut.settings import (ALLOWED_CHARACTERS, DEFAULT_LINK_LENGTH,
-                            FUNCTION_REDIRECT, MAX_LINK_LENGTH, PATTERN,
+                            FUNCTION_REDIRECT, MAX_LINK_LENGTH,
                             SIZE_SHORT_USER_ID, UNIQUE_ID_RETRIES)
 
 from . import db
