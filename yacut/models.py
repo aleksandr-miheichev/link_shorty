@@ -11,12 +11,10 @@ from yacut.settings import (ALLOWED_CHARACTERS, DEFAULT_LINK_LENGTH,
 from . import db
 
 ID_AVAILABLE_API = 'Имя "{custom_id}" уже занято.'
-INVALID_NAME_LINK = 'Указано недопустимое имя для короткой ссылки'
 ERROR_CREATE_UNIQUE_CUSTOM_ID = ('Не удалось сгенерировать уникальный '
                                  'короткий идентификатор после максимального '
                                  'количества повторных попыток - '
                                  '{max_number_of_tries} раз.')
-WRONG_FORMAT_URL = 'Предоставлен неверный формат URL.'
 
 
 class URLMap(db.Model):
