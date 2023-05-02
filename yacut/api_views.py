@@ -10,7 +10,7 @@ from .settings import SIZE_SHORT_USER_ID
 ID_NOT_FOUND = 'Указанный id не найден'
 REQUEST_EMPTY = 'Отсутствует тело запроса'
 URL_REQUIRED_FIELD = '"url" является обязательным полем!'
-LENGTH_ERROR = 'Длина должна быть до {max_length_user_id} символов.'
+INVALID_NAME = 'Указано недопустимое имя для короткой ссылки'
 
 
 @app.route('/api/id/<string:custom_id>/', methods=['GET'])
@@ -48,9 +48,7 @@ def create_short_link():
         raise InvalidAPIUsage(URL_REQUIRED_FIELD)
     custom_id = data.get('custom_id')
     if custom_id and len(custom_id) > SIZE_SHORT_USER_ID:
-        raise InvalidAPIUsage(LENGTH_ERROR.format(
-            max_length_user_id=SIZE_SHORT_USER_ID
-        ))
+        raise InvalidAPIUsage(INVALID_NAME)
     return jsonify(
         URLMap.create(data['url'], custom_id).to_dict()
     ), HTTPStatus.CREATED
