@@ -5,7 +5,7 @@ from flask import jsonify, request
 from . import app
 from .error_handlers import InvalidAPIUsage
 from .models import URLMap
-from .settings import SIZE_SHORT_USER_ID
+from .settings import PATTERN, SIZE_SHORT_USER_ID
 
 ID_NOT_FOUND = 'Указанный id не найден'
 REQUEST_EMPTY = 'Отсутствует тело запроса'
@@ -48,6 +48,8 @@ def create_short_link():
         raise InvalidAPIUsage(URL_REQUIRED_FIELD)
     custom_id = data.get('custom_id')
     if custom_id and len(custom_id) > SIZE_SHORT_USER_ID:
+        raise InvalidAPIUsage(INVALID_NAME)
+    if not PATTERN.match(custom_id):
         raise InvalidAPIUsage(INVALID_NAME)
     return jsonify(
         URLMap.create(data['url'], custom_id).to_dict()
