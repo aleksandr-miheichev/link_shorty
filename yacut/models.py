@@ -1,21 +1,22 @@
+import random
 from datetime import datetime
-from secrets import choice
 from urllib.parse import urlparse
 
 from flask import url_for
 
+from yacut.error_handlers import InvalidAPIUsage
 from yacut.settings import (ALLOWED_CHARACTERS, DEFAULT_LINK_LENGTH,
-                            FUNCTION_REDIRECT, MAX_LINK_LENGTH,
+                            FUNCTION_REDIRECT, MAX_LINK_LENGTH, PATTERN,
                             SIZE_SHORT_USER_ID, UNIQUE_ID_RETRIES)
 
 from . import db
-from yacut.error_handlers import InvalidAPIUsage
 
 ID_AVAILABLE_API = 'Имя "{custom_id}" уже занято.'
 INVALID_NAME_LINK = 'Указано недопустимое имя для короткой ссылки'
 ERROR_CREATE_UNIQUE_CUSTOM_ID = ('Не удалось сгенерировать уникальный '
                                  'короткий идентификатор после максимального '
-                                 'количества повторных попыток.')
+                                 'количества повторных попыток - '
+                                 '{max_number_of_tries} раз.')
 WRONG_FORMAT_URL = 'Предоставлен неверный формат URL.'
 
 
@@ -63,12 +64,12 @@ class URLMap(db.Model):
     def _generate_unique_custom_id(length=DEFAULT_LINK_LENGTH):
         """Генерирует уникальный короткий идентификатор с указанной длиной."""
         for _ in range(UNIQUE_ID_RETRIES):
-            custom_id = ''.join(
-                choice(ALLOWED_CHARACTERS) for _ in range(length)
-            )
+            custom_id = ''.join(random.choices(ALLOWED_CHARACTERS, k=length))
             if URLMap.is_custom_id_unique(custom_id):
                 return custom_id
-        raise ValueError(ERROR_CREATE_UNIQUE_CUSTOM_ID)
+        raise InvalidAPIUsage(ERROR_CREATE_UNIQUE_CUSTOM_ID.format(
+            max_number_of_tries=UNIQUE_ID_RETRIES
+        ))
 
     @staticmethod
     def create(original_url, custom_id=None):
@@ -76,18 +77,11 @@ class URLMap(db.Model):
         Создаёт новую запись URLMap с заданным original_url и необязательным
         пользовательским custom_id.
         """
-        parsed_url = urlparse(original_url)
-        if not parsed_url.scheme or not parsed_url.netloc:
-            raise InvalidAPIUsage(WRONG_FORMAT_URL)
         if custom_id:
-            if not len(custom_id) <= SIZE_SHORT_USER_ID:
-                raise InvalidAPIUsage(INVALID_NAME_LINK)
-            if not all(char in ALLOWED_CHARACTERS for char in custom_id):
-                raise InvalidAPIUsage(INVALID_NAME_LINK)
             if not URLMap.is_custom_id_unique(custom_id):
-                raise InvalidAPIUsage(
-                    ID_AVAILABLE_API.format(custom_id=custom_id)
-                )
+                raise InvalidAPIUsage(ID_AVAILABLE_API.format(
+                    custom_id=custom_id
+                ))
         else:
             custom_id = URLMap._generate_unique_custom_id()
         url_map = URLMap(original=original_url, short=custom_id)

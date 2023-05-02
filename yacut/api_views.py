@@ -44,4 +44,6 @@ def create_short_link():
         raise InvalidAPIUsage(REQUEST_EMPTY)
     if 'url' not in data:
         raise InvalidAPIUsage(URL_REQUIRED_FIELD)
-    return jsonify(URLMap.create(data['url'], data.get('custom_id')).to_dict()), HTTPStatus.CREATED
+    return jsonify(
+        URLMap.create(data['url'], data.get('custom_id')).to_dict()
+    ), HTTPStatus.CREATED

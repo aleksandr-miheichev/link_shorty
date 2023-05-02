@@ -8,13 +8,13 @@ from yacut.settings import MAX_LINK_LENGTH, PATTERN, SIZE_SHORT_USER_ID
 
 INVALID_CHARACTERS = ('Недопустимый символ(ы). Допустимы только буквы, цифры, '
                       'дефисы и знаки подчеркивания.')
-LENGTH_ERROR = 'Длина должна быть от 1 до 16 символов.'
+LENGTH_ERROR = 'Длина должна быть до {max_length_user_id} символов.'
 ENTER_LONG_LINK = 'Введите длинную ссылку'
 MANDATORY_FIELD = 'Обязательное поле'
 ENTER_SHORT_LINK = 'Ваш вариант короткой ссылки'
 CREATE = 'Создать'
 ID_AVAILABLE = 'Имя {custom_id} уже занято!'
-LINK_LIMIT_LENGTH = 'Длина ссылки должна быть до 2048 символов'
+LINK_LIMIT_LENGTH = 'Длина ссылки должна быть до {max_link_length} символов'
 
 
 class URLMapForm(FlaskForm):
@@ -26,14 +26,18 @@ class URLMapForm(FlaskForm):
         ENTER_LONG_LINK,
         validators=[
             DataRequired(message=MANDATORY_FIELD),
-            Length(max=MAX_LINK_LENGTH, message=LINK_LIMIT_LENGTH)
+            Length(max=MAX_LINK_LENGTH, message=LINK_LIMIT_LENGTH.format(
+                max_link_length=MAX_LINK_LENGTH
+            ))
         ]
     )
     custom_id = StringField(
         ENTER_SHORT_LINK,
         validators=[
             Optional(),
-            Length(max=SIZE_SHORT_USER_ID, message=LENGTH_ERROR),
+            Length(max=SIZE_SHORT_USER_ID, message=LENGTH_ERROR.format(
+                max_length_user_id=SIZE_SHORT_USER_ID
+            )),
             Regexp(regex=PATTERN.pattern, message=INVALID_CHARACTERS)
         ]
     )

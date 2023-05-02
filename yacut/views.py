@@ -6,8 +6,7 @@ from . import app
 from .error_handlers import InvalidAPIUsage
 from .forms import URLMapForm
 from .models import URLMap
-
-ID_AVAILABLE = 'Имя {custom_id} уже занято!'
+from .settings import FUNCTION_REDIRECT
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -25,22 +24,21 @@ def index_view():
     custom_id = form.custom_id.data
     original_link = form.original_link.data
     try:
-        new_url_map = URLMap.create(
-            original_url=original_link,
-            custom_id=custom_id
+        return render_template(
+            'index.html',
+            form=form,
+            short_link=url_for(
+                FUNCTION_REDIRECT,
+                custom_id=URLMap.create(
+                    original_url=original_link,
+                    custom_id=custom_id
+                ).short,
+                _external=True
+            )
         )
     except InvalidAPIUsage as e:
         flash(str(e))
         return render_template('index.html', form=form)
-    return render_template(
-        'index.html',
-        form=form,
-        short_link=url_for(
-            'redirect_view',
-            custom_id=new_url_map.short,
-            _external=True
-        )
-    )
 
 
 @app.route('/<string:custom_id>', methods=['GET'])
