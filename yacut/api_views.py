@@ -49,4 +49,4 @@ def create_short_link():
             URLMap.create(data['url'], data.get('custom_id')).to_dict()
         ), HTTPStatus.CREATED
     except InvalidORMUsage as e:
-        raise InvalidAPIUsage(str(e))
+        raise InvalidAPIUsage(e.message)
