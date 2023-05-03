@@ -9,6 +9,7 @@ from yacut.models import URLMap
 ID_NOT_FOUND = 'Указанный id не найден'
 REQUEST_EMPTY = 'Отсутствует тело запроса'
 URL_REQUIRED_FIELD = '"url" является обязательным полем!'
+INVALID_NAME = 'Указано недопустимое имя для короткой ссылки'
 
 
 @app.route('/api/id/<string:custom_id>/', methods=['GET'])
@@ -47,5 +48,5 @@ def create_short_link():
     try:
         created_url_map = URLMap.create(data['url'], data.get('custom_id'))
         return jsonify(created_url_map.to_dict()), HTTPStatus.CREATED
-    except InvalidORMUsage as e:
-        raise InvalidAPIUsage(str(e))
+    except InvalidORMUsage:
+        raise InvalidAPIUsage(INVALID_NAME)
