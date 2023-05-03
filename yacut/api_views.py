@@ -4,15 +4,13 @@ from flask import jsonify, request
 
 from . import app
 from yacut.error_handlers import InvalidAPIUsage, InvalidORMUsage
-from yacut.models import URLMap
-from yacut.settings import MAX_LINK_LENGTH
+from yacut.models import (
+    URLMap, ID_AVAILABLE_API, INVALID_NAME, LINK_LIMIT_LENGTH
+)
 
 ID_NOT_FOUND = 'Указанный id не найден'
 REQUEST_EMPTY = 'Отсутствует тело запроса'
 URL_REQUIRED_FIELD = '"url" является обязательным полем!'
-INVALID_NAME = 'Указано недопустимое имя для короткой ссылки'
-ID_AVAILABLE_API = 'Имя "{custom_id}" уже занято.'
-LINK_LIMIT_LENGTH = f'Длина ссылки должна быть до {MAX_LINK_LENGTH} символов'
 
 
 @app.route('/api/id/<string:custom_id>/', methods=['GET'])
