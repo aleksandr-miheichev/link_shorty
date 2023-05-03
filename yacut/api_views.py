@@ -46,19 +46,6 @@ def create_short_link():
         raise InvalidAPIUsage(REQUEST_EMPTY)
     if 'url' not in data:
         raise InvalidAPIUsage(URL_REQUIRED_FIELD)
-    try:
-        created_url_map = URLMap.create(data['url'], data.get('custom_id'))
-        return jsonify(created_url_map.to_dict()), HTTPStatus.CREATED
-    except InvalidORMUsage as e:
-        if str(e) == INVALID_NAME:
-            raise InvalidAPIUsage(INVALID_NAME)
-        elif str(e) == LINK_LIMIT_LENGTH:
-            raise InvalidAPIUsage(LINK_LIMIT_LENGTH)
-        elif str(e) == ID_AVAILABLE_API.format(
-                custom_id=data.get('custom_id')
-        ):
-            raise InvalidAPIUsage(
-                ID_AVAILABLE_API.format(custom_id=data.get('custom_id'))
-            )
-        else:
-            raise InvalidAPIUsage(str(e))
+    return jsonify(
+        URLMap.create(data['url'], data.get('custom_id')).to_dict()
+    ), HTTPStatus.CREATED
