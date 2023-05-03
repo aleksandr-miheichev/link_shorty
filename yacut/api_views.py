@@ -5,11 +5,14 @@ from flask import jsonify, request
 from . import app
 from yacut.error_handlers import InvalidAPIUsage, InvalidORMUsage
 from yacut.models import URLMap
+from yacut.settings import MAX_LINK_LENGTH
 
 ID_NOT_FOUND = 'Указанный id не найден'
 REQUEST_EMPTY = 'Отсутствует тело запроса'
 URL_REQUIRED_FIELD = '"url" является обязательным полем!'
 INVALID_NAME = 'Указано недопустимое имя для короткой ссылки'
+ID_AVAILABLE_API = 'Имя "{custom_id}" уже занято.'
+LINK_LIMIT_LENGTH = f'Длина ссылки должна быть до {MAX_LINK_LENGTH} символов'
 
 
 @app.route('/api/id/<string:custom_id>/', methods=['GET'])
@@ -48,5 +51,12 @@ def create_short_link():
     try:
         created_url_map = URLMap.create(data['url'], data.get('custom_id'))
         return jsonify(created_url_map.to_dict()), HTTPStatus.CREATED
-    except InvalidORMUsage:
-        raise InvalidAPIUsage(INVALID_NAME)
+    except InvalidORMUsage as e:
+        if str(e) == INVALID_NAME:
+            raise InvalidAPIUsage(INVALID_NAME)
+        elif str(e) == LINK_LIMIT_LENGTH:
+            raise InvalidAPIUsage(LINK_LIMIT_LENGTH)
+        else:
+            raise InvalidAPIUsage(
+                ID_AVAILABLE_API.format(custom_id=data.get('custom_id'))
+            )
