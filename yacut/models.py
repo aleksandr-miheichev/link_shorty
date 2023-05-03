@@ -73,11 +73,11 @@ class URLMap(db.Model):
         Создаёт новую запись URLMap с заданным original_url и необязательным
         пользовательским custom_id.
         """
-        if len(original_url) > MAX_LINK_LENGTH:
-            raise InvalidORMUsage(LINK_LIMIT_LENGTH)
         if not custom_id:
             custom_id = URLMap.generate_unique_custom_id()
         elif validate:
+            if len(original_url) > MAX_LINK_LENGTH:
+                raise InvalidORMUsage(LINK_LIMIT_LENGTH)
             if len(custom_id) > SIZE_SHORT_USER_ID:
                 raise InvalidORMUsage(INVALID_NAME)
             if not PATTERN.match(custom_id):

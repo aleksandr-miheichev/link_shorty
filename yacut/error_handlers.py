@@ -21,11 +21,9 @@ class InvalidAPIUsage(Exception):
         return dict(message=self.message)
 
 
-class InvalidORMUsage(Exception):
+class InvalidORMUsage(InvalidAPIUsage):
     """Исключение, возникающее при ошибках, связанных с ORM."""
-    def __init__(self, message):
-        super().__init__()
-        self.message = message
+    pass
 
 
 @app.errorhandler(InvalidAPIUsage)
