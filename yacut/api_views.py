@@ -3,10 +3,8 @@ from http import HTTPStatus
 from flask import jsonify, request
 
 from . import app
-from yacut.error_handlers import InvalidAPIUsage, InvalidORMUsage
-from yacut.models import (
-    URLMap, ID_AVAILABLE_API, INVALID_NAME, LINK_LIMIT_LENGTH
-)
+from yacut.error_handlers import InvalidAPIUsage
+from yacut.models import URLMap
 
 ID_NOT_FOUND = 'Указанный id не найден'
 REQUEST_EMPTY = 'Отсутствует тело запроса'
