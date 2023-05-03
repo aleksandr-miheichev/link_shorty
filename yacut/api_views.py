@@ -3,7 +3,7 @@ from http import HTTPStatus
 from flask import jsonify, request
 
 from . import app
-from yacut.error_handlers import InvalidAPIUsage
+from yacut.error_handlers import InvalidAPIUsage, InvalidORMUsage
 from yacut.models import URLMap
 
 ID_NOT_FOUND = 'Указанный id не найден'
@@ -44,6 +44,9 @@ def create_short_link():
         raise InvalidAPIUsage(REQUEST_EMPTY)
     if 'url' not in data:
         raise InvalidAPIUsage(URL_REQUIRED_FIELD)
-    return jsonify(
-        URLMap.create(data['url'], data.get('custom_id')).to_dict()
-    ), HTTPStatus.CREATED
+    try:
+        return jsonify(
+            URLMap.create(data['url'], data.get('custom_id')).to_dict()
+        ), HTTPStatus.CREATED
+    except InvalidORMUsage as e:
+        raise InvalidAPIUsage(str(e))

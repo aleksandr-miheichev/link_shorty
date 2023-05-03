@@ -6,7 +6,7 @@ from wtforms.validators import (DataRequired, Length, Optional, Regexp,
 from yacut.models import URLMap
 from yacut.settings import MAX_LINK_LENGTH, PATTERN, SIZE_SHORT_USER_ID
 
-INVALID_CHARACTERS = ('Недопустимый символ(ы). Допустимы только буквы, цифры, '
+INVALID_CHARACTERS = ('Недопустимые символ(ы). Допустимы только буквы, цифры, '
                       'дефисы и знаки подчеркивания.')
 LENGTH_ERROR = f'Длина должна быть до {SIZE_SHORT_USER_ID} символов.'
 ENTER_LONG_LINK = 'Введите длинную ссылку'
