@@ -4,7 +4,7 @@ from datetime import datetime
 from flask import url_for
 
 from . import db
-from yacut.error_handlers import InvalidUsage
+from yacut.error_handlers import InvalidORMUsage
 from yacut.settings import (ALLOWED_CHARACTERS, DEFAULT_LINK_LENGTH,
                             FUNCTION_REDIRECT, MAX_LINK_LENGTH, PATTERN,
                             SIZE_SHORT_USER_ID, UNIQUE_ID_RETRIES)
@@ -15,6 +15,7 @@ ERROR_CREATE_UNIQUE_CUSTOM_ID = (
     f'максимального количества повторных попыток - {UNIQUE_ID_RETRIES} раз.'
 )
 INVALID_NAME = 'Указано недопустимое имя для короткой ссылки'
+LINK_LIMIT_LENGTH = f'Длина ссылки должна быть до {MAX_LINK_LENGTH} символов'
 
 
 class URLMap(db.Model):
@@ -64,7 +65,7 @@ class URLMap(db.Model):
             custom_id = ''.join(random.choices(ALLOWED_CHARACTERS, k=length))
             if URLMap.is_custom_id_unique(custom_id):
                 return custom_id
-        raise InvalidUsage(ERROR_CREATE_UNIQUE_CUSTOM_ID)
+        raise InvalidORMUsage(ERROR_CREATE_UNIQUE_CUSTOM_ID)
 
     @staticmethod
     def create(original_url, custom_id=None, validate=True):
@@ -72,18 +73,19 @@ class URLMap(db.Model):
         Создаёт новую запись URLMap с заданным original_url и необязательным
         пользовательским custom_id.
         """
+        if len(original_url) > MAX_LINK_LENGTH:
+            raise InvalidORMUsage(LINK_LIMIT_LENGTH)
         if not custom_id:
             custom_id = URLMap.generate_unique_custom_id()
-        else:
-            if validate:
-                if not URLMap.is_custom_id_unique(custom_id):
-                    raise InvalidUsage(ID_AVAILABLE_API.format(
-                        custom_id=custom_id
-                    ))
-                if len(custom_id) > SIZE_SHORT_USER_ID:
-                    raise InvalidUsage(INVALID_NAME)
-                if not PATTERN.match(custom_id):
-                    raise InvalidUsage(INVALID_NAME)
+        elif validate:
+            if len(custom_id) > SIZE_SHORT_USER_ID:
+                raise InvalidORMUsage(INVALID_NAME)
+            if not PATTERN.match(custom_id):
+                raise InvalidORMUsage(INVALID_NAME)
+            if not URLMap.is_custom_id_unique(custom_id):
+                raise InvalidORMUsage(ID_AVAILABLE_API.format(
+                    custom_id=custom_id
+                ))
         url_map = URLMap(original=original_url, short=custom_id)
         db.session.add(url_map)
         db.session.commit()

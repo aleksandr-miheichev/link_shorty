@@ -3,7 +3,7 @@ from http import HTTPStatus
 from flask import abort, flash, redirect, render_template, url_for
 
 from . import app
-from .error_handlers import InvalidUsage
+from .error_handlers import InvalidORMUsage
 from .forms import URLMapForm
 from .models import URLMap
 from .settings import FUNCTION_REDIRECT
@@ -36,7 +36,7 @@ def index_view():
                 _external=True
             )
         )
-    except InvalidUsage as e:
+    except InvalidORMUsage as e:
         flash(str(e))
         return render_template('index.html', form=form)
 

@@ -5,7 +5,7 @@ from flask import jsonify, render_template
 from . import app, db
 
 
-class InvalidUsage(Exception):
+class InvalidAPIUsage(Exception):
     """
     Пользовательский класс исключений при ошибках использования API.
     """
@@ -21,7 +21,14 @@ class InvalidUsage(Exception):
         return dict(message=self.message)
 
 
-@app.errorhandler(InvalidUsage)
+class InvalidORMUsage(Exception):
+    """Исключение, возникающее при ошибках, связанных с ORM."""
+    def __init__(self, message):
+        super().__init__()
+        self.message = message
+
+
+@app.errorhandler(InvalidAPIUsage)
 def invalid_api_usage(error):
     return jsonify(error.to_dict()), error.status_code
 
