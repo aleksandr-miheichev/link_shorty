@@ -3,14 +3,12 @@ from http import HTTPStatus
 from flask import jsonify, request
 
 from . import app
-from .error_handlers import InvalidAPIUsage
-from .models import URLMap
-from .settings import PATTERN, SIZE_SHORT_USER_ID
+from yacut.error_handlers import InvalidUsage
+from yacut.models import URLMap
 
 ID_NOT_FOUND = 'Указанный id не найден'
 REQUEST_EMPTY = 'Отсутствует тело запроса'
 URL_REQUIRED_FIELD = '"url" является обязательным полем!'
-INVALID_NAME = 'Указано недопустимое имя для короткой ссылки'
 
 
 @app.route('/api/id/<string:custom_id>/', methods=['GET'])
@@ -27,7 +25,7 @@ def get_original_url(custom_id):
     """
     url_map = URLMap.get(custom_id)
     if url_map is None:
-        raise InvalidAPIUsage(ID_NOT_FOUND, HTTPStatus.NOT_FOUND)
+        raise InvalidUsage(ID_NOT_FOUND, HTTPStatus.NOT_FOUND)
     return jsonify({'url': url_map.original}), HTTPStatus.OK
 
 
@@ -43,14 +41,9 @@ def create_short_link():
     """
     data = request.get_json()
     if not data:
-        raise InvalidAPIUsage(REQUEST_EMPTY)
+        raise InvalidUsage(REQUEST_EMPTY)
     if 'url' not in data:
-        raise InvalidAPIUsage(URL_REQUIRED_FIELD)
-    custom_id = data.get('custom_id') or URLMap.generate_unique_custom_id()
-    if custom_id and len(custom_id) > SIZE_SHORT_USER_ID:
-        raise InvalidAPIUsage(INVALID_NAME)
-    if not PATTERN.match(custom_id):
-        raise InvalidAPIUsage(INVALID_NAME)
+        raise InvalidUsage(URL_REQUIRED_FIELD)
     return jsonify(
-        URLMap.create(data['url'], custom_id).to_dict()
+        URLMap.create(data['url'], data.get('custom_id')).to_dict()
     ), HTTPStatus.CREATED
