@@ -56,7 +56,11 @@ def create_short_link():
             raise InvalidAPIUsage(INVALID_NAME)
         elif str(e) == LINK_LIMIT_LENGTH:
             raise InvalidAPIUsage(LINK_LIMIT_LENGTH)
-        else:
+        elif str(e) == ID_AVAILABLE_API.format(
+                custom_id=data.get('custom_id')
+        ):
             raise InvalidAPIUsage(
                 ID_AVAILABLE_API.format(custom_id=data.get('custom_id'))
             )
+        else:
+            raise InvalidAPIUsage(str(e))
