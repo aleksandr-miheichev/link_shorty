@@ -21,7 +21,7 @@ class InvalidAPIUsage(Exception):
         return dict(message=self.message)
 
 
-class InvalidORMUsage(InvalidAPIUsage):
+class InvalidORMUsage(Exception):
     """Исключение, возникающее при ошибках, связанных с ORM."""
     pass
 
